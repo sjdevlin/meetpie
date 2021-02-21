@@ -437,8 +437,8 @@ int main(int argc, char **ppArgv)
 	// initialise all meeting data variables
 	// initialise arrays for input and output data
 
-	meeting meeting_data;																				   // "meeting" is a  custom type
-	participant_data *participant_data_array = (participant_data *)malloc(MAXPART * sizeof(meeting_data)); // "participant data" is a struct
+	meeting meeting_data;	   // "meeting" is a  custom type
+	participant_data *participant_data_array = (participant_data *)malloc(MAXPART * sizeof(participant_data)); // "participant data" is a struct
 	odas_data *odas_data_array = (odas_data *)malloc(NUM_CHANNELS * sizeof(odas_data));					   // "odas data" is a struct
 	initialise_meeting_data(&meeting_data, participant_data_array, odas_data_array);					   // set everything to zero
 
@@ -469,92 +469,94 @@ int main(int argc, char **ppArgv)
 		//it processes this data and then updates the bluetooth characteristic with new data
 
 		bytes_returned = recvfrom(in_sockfd, (char *)input_buffer, MAXLINE,
-								  MSG_WAITALL, (struct sockaddr *)&in_addr,
+								  MSG_DONTWAIT, (struct sockaddr *)&in_addr,
 								  &len);
 
 		if (bytes_returned > 0)
 		{
+			printf("got %d bytes\n", bytes_returned);
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
 			json_parse(input_buffer, odas_data_array);
-		}
+		
 
-		process_sound_data(&meeting_data, participant_data_array, odas_data_array);
+			process_sound_data(&meeting_data, participant_data_array, odas_data_array);
 
-		// build the string for the server
-		// load data into shared buffer space for the data getter
-		// first lock the mutex
+			// build the string for the server
+			// load data into shared buffer space for the data getter
+			// first lock the mutex
 
-		mutex_buffer.lock();
+			mutex_buffer.lock();
 
 		// is this needed ?
-		serverDataTextString = "{\"totalMeetingTime\": ";
-		serverDataTextString += std::to_string(meeting_data.total_meeting_time);
-		serverDataTextString += ",\n\"message\": [\n";
+			serverDataTextString = "{\"totalMeetingTime\": ";
+			serverDataTextString += std::to_string(meeting_data.total_meeting_time);
+			serverDataTextString += ",\n\"message\": [\n";
 
-		int i;
-		for (i = 1; i <= meeting_data.num_participants; i++)
-		{
-			serverDataTextString += "{\"memNum\": ";
-			serverDataTextString += std::to_string(i);
-			serverDataTextString += ",\n\"angle\": ";
-			serverDataTextString += std::to_string(participant_data_array[i].participant_angle);
-			serverDataTextString += ",\n\"talking\": ";
-			serverDataTextString += std::to_string(participant_data_array[i].participant_is_talking);
-			serverDataTextString += ",\n\"numTurns\": ";
-			serverDataTextString += std::to_string(participant_data_array[i].participant_num_turns);
-			serverDataTextString += ",\n\"freq\": ";
-			serverDataTextString += std::to_string(participant_data_array[i].participant_frequency);
-			serverDataTextString += ",\n\"totalTalk\": ";
-			serverDataTextString += std::to_string(participant_data_array[i].participant_total_talk_time);
-			serverDataTextString += "}";
-
-			if (participant_data_array[i].participant_is_talking > 0)
+			int i;
+			for (i = 1; i <= meeting_data.num_participants; i++)
 			{
-				// not sure this logic is necessary - prob all targets go to zero before dropping out
-				participant_data_array[i].participant_is_talking = 0x00;
-				if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
+				serverDataTextString += "{\"memNum\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\n\"angle\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_angle);
+				serverDataTextString += ",\n\"talking\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_is_talking);
+				serverDataTextString += ",\n\"numTurns\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_num_turns);
+				serverDataTextString += ",\n\"freq\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_frequency);
+				serverDataTextString += ",\n\"totalTalk\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_total_talk_time);
+				serverDataTextString += "}";
+
+				if (participant_data_array[i].participant_is_talking > 0)
 				{
-					participant_data_array[i].participant_num_turns++;
-					participant_data_array[i].participant_silent_time = 0;
+					// not sure this logic is necessary - prob all targets go to zero before dropping out
+					participant_data_array[i].participant_is_talking = 0x00;
+					if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
+					{
+						participant_data_array[i].participant_num_turns++;
+						participant_data_array[i].participant_silent_time = 0;
+					}
+				}
+				else
+				{
+					participant_data_array[i].participant_silent_time++;
+				};
+
+				if (i != (meeting_data.num_participants))
+				{
+					serverDataTextString += ",";
 				}
 			}
-			else
-			{
-				participant_data_array[i].participant_silent_time++;
-			};
-
-			if (i != (meeting_data.num_participants))
-			{
-				serverDataTextString += ",";
-			}
-		}
 
 			serverDataTextString += "]}\n";
 
-		mutex_buffer.unlock();
-		    printf ("%s\n",serverDataTextString);
+			mutex_buffer.unlock();
+		    	printf ("%s\n",serverDataTextString);
 
 		// now the output string is ready and we should call notify
-		ggkNofifyUpdatedCharacteristic("/com/gobbledegook/text/string");
+			ggkNofifyUpdatedCharacteristic("/com/gobbledegook/text/string");
 
-		if (meeting_data.total_silence > MAXSILENCE)
-		{
-			// reset all the meeting stuff and write to file
-			if (meeting_data.num_participants > 0)
+			if (meeting_data.total_silence > MAXSILENCE)
 			{
-				mutex_buffer.lock();
-				write_to_file(serverDataTextString);
-				mutex_buffer.unlock();
+				// reset all the meeting stuff and write to file
+				if (meeting_data.num_participants > 0)
+				{
+					mutex_buffer.lock();
+					write_to_file(serverDataTextString);
+					mutex_buffer.unlock();
 
 				// reset data for next meeting
-				initialise_meeting_data(&meeting_data, participant_data_array, odas_data_array);
+					initialise_meeting_data(&meeting_data, participant_data_array, odas_data_array);
+				}
 			}
-		}
 		//		std::this_thread::sleep_for(std::chrono::seconds(2));
 
 		//		sd need to change the battery level to be real - from PiJuice
 		//		serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
 		//		ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
+		}
 	}
 
 	// Wait for the server to come to a complete stop (CTRL-C from the command line)
