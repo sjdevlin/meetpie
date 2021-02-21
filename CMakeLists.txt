@@ -15,7 +15,7 @@ pkg_check_modules(PC_GOB REQUIRED gobject-2.0)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-set (SOURCES src/meetpie.cpp src/json_parsing.c)
+set (SOURCES ${PROJECT_SOURCE_DIR}/src/meetpie.cpp ${PROJECT_SOURCE_DIR}/src/json_parsing.c)
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
@@ -24,8 +24,10 @@ set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
 
 find_path (JSON_C_INCLUDE_DIR json.h PATH_SUFFIXES json-c json)
 find_library (JSON_C_LIBRARIES NAMES json-c libjson-c)
-include_directories (${JSON_C_INCLUDE_DIR} ${PROJECT_SOURCE_DIR/include})
+include_directories (${JSON_C_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include)
 
+
+#add_library (MEETPIE_JSON ${PROJECT_SOURCE_DIR}/src/json_parsing.c) 
 
 add_executable(meetpie
     ${SOURCES}
@@ -39,6 +41,8 @@ target_link_libraries(meetpie
     ${JSON_C_LIBRARIES}
 #    ${MATRIX_CREATOR_HAL}
     libm.so.6
+#    ${MEETPIE_JSON}
+#    ${PROJECT_SOURCE_DIR}/build/libjson_parsing.a
     ${PROJECT_SOURCE_DIR}/lib/libggk.a
 )
 

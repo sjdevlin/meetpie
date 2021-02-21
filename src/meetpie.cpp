@@ -532,7 +532,7 @@ int main(int argc, char **ppArgv)
 			serverDataTextString += "]}\n";
 
 		mutex_buffer.unlock();
-		//    printf ("%s\n",serverDataTextString);
+		    printf ("%s\n",serverDataTextString);
 
 		// now the output string is ready and we should call notify
 		ggkNofifyUpdatedCharacteristic("/com/gobbledegook/text/string");
