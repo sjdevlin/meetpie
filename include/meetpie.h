@@ -23,7 +23,7 @@
 #define MAXLINE 1024
 #define MAXPART 7
 #define MAXSILENCE 500
-#define NUM_CHANNELS 3
+#define NUM_CHANNELS 2
 #define ANGLE_SPREAD 10
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2
@@ -40,7 +40,7 @@ typedef struct odas_data{
     double x;
     double y;
     double activity;
-    double frequency;
+    int frequency;
  } odas_data;
 
 typedef struct participant_data{

@@ -15,7 +15,7 @@ pkg_check_modules(PC_GOB REQUIRED gobject-2.0)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
-set (SOURCES ${PROJECT_SOURCE_DIR}/src/meetpie.cpp ${PROJECT_SOURCE_DIR}/src/json_parsing.c)
+set (SOURCES ${PROJECT_SOURCE_DIR}/src/meetpie.cpp ${PROJECT_SOURCE_DIR}/src/json_parsing.cpp)
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")

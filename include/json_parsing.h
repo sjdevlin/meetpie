@@ -12,15 +12,15 @@
 #include <sys/types.h>
 #include <json-c/json.h>
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
+//#ifdef  __cplusplus
+//extern "C" {
+//#endif
 
 void json_parse(char *, odas_data * );
 void json_parse_item(json_object *, odas_data *, const int);
 
-#ifdef  __cplusplus
-}
-#endif
+//#ifdef  __cplusplus
+//}
+//#endif
 
 

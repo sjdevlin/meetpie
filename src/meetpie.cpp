@@ -239,6 +239,8 @@ void process_sound_data(meeting *meeting_data, participant_data *participant_dat
 			meeting_data->total_silence = 0;
 			target_angle = 180 - (atan2(odas_data_array[iChannel].x, odas_data_array[iChannel].y) * 57.3);
 
+			printf("target angle %d\n", target_angle);
+
 			// angle_array holds a int for every angle position.  Once an angle is set to true a person is registered there
 			// so if tracked source is picked up we check to see if it is coming from a known participant
 			// if it is not yet known then we also check that we havent reached max particpants before trying to add a new one
@@ -476,9 +478,13 @@ int main(int argc, char **ppArgv)
 		{
 			printf("got %d bytes\n", bytes_returned);
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
+
+
+			printf("going in to parsing");
+
 			json_parse(input_buffer, odas_data_array);
 		
-
+			printf("got past parsing");
 			process_sound_data(&meeting_data, participant_data_array, odas_data_array);
 
 			// build the string for the server
