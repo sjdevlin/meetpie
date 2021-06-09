@@ -33,6 +33,10 @@ add_executable(meetpie
     ${SOURCES}
 )
 
+add_executable(btstub
+        ${PROJECT_SOURCE_DIR}/src/btstub.cpp
+)
+
 target_link_libraries(meetpie
     libc.so.6
     glib-2.0
@@ -46,4 +50,13 @@ target_link_libraries(meetpie
     ${PROJECT_SOURCE_DIR}/lib/libggk.a
 )
 
-install(TARGETS meetpie DESTINATION bin)
+target_link_libraries(btstub
+    libc.so.6
+    glib-2.0
+    gio-2.0
+    gobject-2.0
+    libm.so.6
+    ${PROJECT_SOURCE_DIR}/lib/libggk.a
+)
+
+install(TARGETS meetpie btstub DESTINATION bin)
