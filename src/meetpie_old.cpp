@@ -494,50 +494,41 @@ int main(int argc, char **ppArgv)
 			mutex_buffer.lock();
 
 		// is this needed ?
-			serverDataTextString = "{\"tMT\": ";
+			serverDataTextString = "{\"totalMeetingTime\": ";
 			serverDataTextString += std::to_string(meeting_data.total_meeting_time);
-			serverDataTextString += ",\n\"m\": [\n";
+			serverDataTextString += ",\n\"message\": [\n";
 
 			int i;
-			for (i = 1; i <= MAXPART+1; i++)
+			for (i = 1; i <= meeting_data.num_participants; i++)
 			{
-
-
-				serverDataTextString += "[";
+				serverDataTextString += "{\"memNum\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\n\"angle\": ";
 				serverDataTextString += std::to_string(participant_data_array[i].participant_angle);
-				serverDataTextString += ",";
+				serverDataTextString += ",\n\"talking\": ";
 				serverDataTextString += std::to_string(participant_data_array[i].participant_is_talking);
-				serverDataTextString += ",";
+				serverDataTextString += ",\n\"numTurns\": ";
 				serverDataTextString += std::to_string(participant_data_array[i].participant_num_turns);
-				serverDataTextString += ",";
+				serverDataTextString += ",\n\"freq\": ";
+				serverDataTextString += std::to_string(participant_data_array[i].participant_frequency);
+				serverDataTextString += ",\n\"totalTalk\": ";
 				serverDataTextString += std::to_string(participant_data_array[i].participant_total_talk_time);
-				serverDataTextString += "]";
+				serverDataTextString += "}";
 
-
-				if (i < MAXPART+1)
+				if (participant_data_array[i].participant_is_talking > 0)
 				{
-					serverDataTextString += ",";
-				}
-			}
-
-			serverDataTextString += "]}\n";
-
-
-
-
-			if (participant_data_array[i].participant_is_talking > 0)
-			{
-				// not sure this logic is necessary - prob all targets go to zero before dropping out
-				participant_data_array[i].participant_is_talking = 0x00;
-				if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
-				{
-					participant_data_array[i].participant_num_turns++;
-					participant_data_array[i].participant_silent_time = 0;
+					// not sure this logic is necessary - prob all targets go to zero before dropping out
+					participant_data_array[i].participant_is_talking = 0x00;
+					if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
+					{
+						participant_data_array[i].participant_num_turns++;
+						participant_data_array[i].participant_silent_time = 0;
+					}
 				}
 				else
 				{
 					participant_data_array[i].participant_silent_time++;
-				}
+				};
 
 				if (i != (meeting_data.num_participants))
 				{

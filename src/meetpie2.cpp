@@ -525,19 +525,20 @@ int main(int argc, char **ppArgv)
 
 
 
-			if (participant_data_array[i].participant_is_talking > 0)
-			{
-				// not sure this logic is necessary - prob all targets go to zero before dropping out
-				participant_data_array[i].participant_is_talking = 0x00;
-				if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
+				if (participant_data_array[i].participant_is_talking > 0)
 				{
-					participant_data_array[i].participant_num_turns++;
-					participant_data_array[i].participant_silent_time = 0;
+					// not sure this logic is necessary - prob all targets go to zero before dropping out
+					participant_data_array[i].participant_is_talking = 0x00;
+					if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
+					{
+						participant_data_array[i].participant_num_turns++;
+						participant_data_array[i].participant_silent_time = 0;
+					}
 				}
 				else
 				{
 					participant_data_array[i].participant_silent_time++;
-				}
+				};
 
 				if (i != (meeting_data.num_participants))
 				{

@@ -180,20 +180,24 @@ int main(int argc, char **ppArgv)
 			serverDataTextString += ",\n\"m\": [\n";
 
 
-			for (int i = 1; i < 9; i++)
+			for (int i = 1; i <= j && i < 7; i++)
 			{
-				serverDataTextString += "[";
-				serverDataTextString += std::to_string(j+i);
-				serverDataTextString += ",";
-				serverDataTextString += std::to_string(j-1);
-				serverDataTextString += ",";
-				serverDataTextString += std::to_string(j*i);
-				serverDataTextString += ",";
-				serverDataTextString += std::to_string(j*i*i);
-				serverDataTextString += "]";
+				serverDataTextString += "{\"mN\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\"a\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\"t\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\"nT\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\"f\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += ",\"tT\": ";
+				serverDataTextString += std::to_string(i);
+				serverDataTextString += "}";
 
 
-				if (i < 8)
+				if (i < j && i < 7)
 				{
 					serverDataTextString += ",";
 				}
