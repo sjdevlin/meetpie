@@ -19,11 +19,11 @@ void json_parse(char *buffer, odas_data * odas_array)
   enum json_type type;
   int arraylen;
 
-    printf ("got in to json parse function\n");
+//    printf ("got in to json parse function\n");
 
   jobj = json_tokener_parse(buffer);
 
-    printf ("got past jobj creation\n");
+//    printf ("got past jobj creation\n");
 
   json_object_object_foreach(jobj, key, val)
   {

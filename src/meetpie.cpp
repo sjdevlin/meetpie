@@ -164,15 +164,15 @@ const void *dataGetter(const char *pName)
 	}
 	else if (strName == "text/string")
 	{
-		std::string serverOutputString;
+//		std::string serverOutputString;
 
-		mutex_buffer.lock();
+//		mutex_buffer.lock();
 
-		serverOutputString = serverDataTextString;
+//		serverOutputString = serverDataTextString;
 
-		mutex_buffer.unlock();
+//		mutex_buffer.unlock();
 
-		return serverOutputString.c_str();
+		return serverDataTextString.c_str();
 	}
 
 	LogWarn((std::string("Unknown name for server data getter request: '") + pName + "'").c_str());
@@ -480,11 +480,11 @@ int main(int argc, char **ppArgv)
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
 
 
-			printf("going in to parsing");
+//			printf("going in to parsing");
 
 			json_parse(input_buffer, odas_data_array);
 		
-			printf("got past parsing");
+//			printf("got past parsing");
 			process_sound_data(&meeting_data, participant_data_array, odas_data_array);
 
 			// build the string for the server
