@@ -21,9 +21,9 @@
 
 #define INPORT 9000
 #define MAXLINE 1024
-#define MAXPART 7
+#define MAXPART 8
 #define MAXSILENCE 500
-#define NUM_CHANNELS 2
+#define NUM_CHANNELS 3
 #define ANGLE_SPREAD 10
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2

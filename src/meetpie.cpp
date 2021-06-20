@@ -233,8 +233,9 @@ void process_sound_data(meeting *meeting_data, participant_data *participant_dat
 
 	for (iChannel = 0; iChannel < NUM_CHANNELS; iChannel++)
 	{
-		// check if energy at the channel is above threshold and if it has been identifies as speech
-		if (odas_data_array[iChannel].activity > MINENERGY)
+		//  dont use energy to check if track is active otherwise you miss the ending of the speech and
+		//  participant talking is never set to false
+		if (odas_data_array[iChannel].x != 0.0 && odas_data_array[iChannel].y != 0.0)
 		{
 			meeting_data->total_silence = 0;
 			target_angle = 180 - (atan2(odas_data_array[iChannel].x, odas_data_array[iChannel].y) * 57.3);
@@ -476,7 +477,7 @@ int main(int argc, char **ppArgv)
 
 		if (bytes_returned > 0)
 		{
-			printf("got %d bytes\n", bytes_returned);
+//			printf("got %d bytes\n", bytes_returned);
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
 
 
@@ -499,7 +500,7 @@ int main(int argc, char **ppArgv)
 			serverDataTextString += ",\n\"m\": [\n";
 
 			int i;
-			for (i = 1; i <= MAXPART+1; i++)
+			for (i = 1; i < MAXPART; i++)
 			{
 
 
@@ -514,7 +515,27 @@ int main(int argc, char **ppArgv)
 				serverDataTextString += "]";
 
 
-				if (i < MAXPART+1)
+// new logic by sd to calc turns using energy 
+
+				if (participant_data_array[i].participant_is_talking == 0) 
+				{
+					participant_data_array[i].participant_silent_time++;
+				}
+				else 
+				{
+					if (participant_data_array[i].participant_silent_time > MINTURNSILENCE) participant_data_array[i].participant_num_turns++;
+					participant_data_array[i].participant_silent_time = 0;
+				}
+
+
+
+
+					
+
+				
+// end of new turn logic
+
+				if (i < MAXPART-1)
 				{
 					serverDataTextString += ",";
 				}
@@ -524,8 +545,7 @@ int main(int argc, char **ppArgv)
 
 
 
-
-			if (participant_data_array[i].participant_is_talking > 0)
+/*			if (participant_data_array[i].participant_is_talking > 0)
 			{
 				// not sure this logic is necessary - prob all targets go to zero before dropping out
 				participant_data_array[i].participant_is_talking = 0x00;
@@ -539,16 +559,19 @@ int main(int argc, char **ppArgv)
 					participant_data_array[i].participant_silent_time++;
 				}
 
-				if (i != (meeting_data.num_participants))
-				{
-					serverDataTextString += ",";
-				}
+// i think this logic was from when i only sent data about talking people
+//				if (i != (meeting_data.num_participants))
+//				{
+//					serverDataTextString += ",";
+//				}
 			}
+*/
 
-			serverDataTextString += "]}\n";
+
 
 			mutex_buffer.unlock();
-		    	printf ("%s\n",serverDataTextString);
+
+		    	printf ("%s\n",serverDataTextString.c_str());
 
 		// now the output string is ready and we should call notify
 			ggkNofifyUpdatedCharacteristic("/com/gobbledegook/text/string");
