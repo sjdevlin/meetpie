@@ -24,7 +24,7 @@
 #define MAXPART 8
 #define MAXSILENCE 500
 #define NUM_CHANNELS 3
-#define ANGLE_SPREAD 10
+#define ANGLE_SPREAD 15
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2
 
