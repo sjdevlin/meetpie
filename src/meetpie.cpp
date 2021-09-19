@@ -228,79 +228,84 @@ void process_sound_data(meeting *meeting_data, participant_data *participant_dat
 {
 	int target_angle;
 	int iChannel, iAngle;
+	static int prospective_source[4] = {0,0,0,0};  // not pretty but will work for now - assumes NUM_CHANNELS <= 4
 
+	meeting_data->num_talking=0;
 	meeting_data->total_meeting_time++;
 
-	for (iChannel = 0; iChannel < NUM_CHANNELS; iChannel++)
+	for (iChannel = 0; iChannel < NUMCHANNELS ; iChannel++)
 	{
 		//  dont use energy to check if track is active otherwise you miss the ending of the speech and
 		//  participant talking is never set to false
 		if (odas_data_array[iChannel].x != 0.0 && odas_data_array[iChannel].y != 0.0)
 		{
-			meeting_data->total_silence = 0;
+			meeting_data->total_silence = 0;  // consider moving this
 			target_angle = 180 - (atan2(odas_data_array[iChannel].x, odas_data_array[iChannel].y) * 57.3);
 
-			printf("target angle %d\n", target_angle);
-
-			// angle_array holds a int for every angle position.  Once an angle is set to true a person is registered there
+			// participant_number holds a int for every angle position.  Once an angle is set to true a person is registered there
 			// so if tracked source is picked up we check to see if it is coming from a known participant
 			// if it is not yet known then we also check that we havent reached max particpants before trying to add a new one
 
 			//max_num_participants -1 so that we dont go out of bounds - means 0 is never used so will need to optimise
 
-			if (meeting_data->angle_array[target_angle] == 0x00 && meeting_data->num_participants < (MAXPART - 1))
+			if (meeting_data->participant_number[target_angle] == 0x00 && meeting_data->num_participants < (MAXPART - 1))
 			{
-				meeting_data->num_participants++;
 
-				meeting_data->angle_array[target_angle] = meeting_data->num_participants;
-				//                printf ("new person %d\n", num_participants);
-				participant_data_array[meeting_data->num_participants].participant_angle = target_angle;
-
-				// set intial frequency high
-				participant_data_array[meeting_data->num_participants].participant_frequency = 200.0;
-				// write a buffer around them
-
-				for (iAngle = 1; iAngle < ANGLE_SPREAD; iAngle++)
+				if (++prospective_source[iChannel] > MINTALKTIME ) // once they have talked for X secs we are more certain they are a member
 				{
-					if (target_angle + iAngle < 360)
+
+					meeting_data->num_participants++;
+					++meeting_data->num_talking; // another person is talking in this session
+					meeting_data->participant_number[target_angle] = meeting_data->num_participants;
+					participant_data_array[meeting_data->num_participants].participant_angle = target_angle;
+
+					participant_data_array[meeting_data->num_participants].participant_frequency = 200.0;
+					// write a buffer around them
+
+					for (iAngle = 1; iAngle < ANGLE_SPREAD; iAngle++)
 					{
+						if (target_angle + iAngle < 360)
+						{
 						// could check if already set here - but for now will just overwrite
 						// 360 is for going round the clock face
 
-						meeting_data->angle_array[target_angle + iAngle] = meeting_data->num_participants;
-					}
-					else
-					{
-						meeting_data->angle_array[iAngle - 1] = meeting_data->num_participants;
-					}
-					if (target_angle - iAngle >= 0)
-					{
-						// could check if already set here - but for now will just overwrite
-						// 360 is for going round the clock face
-						meeting_data->angle_array[target_angle - iAngle] = meeting_data->num_participants;
-					}
-					else
-					{
-						meeting_data->angle_array[361 - iAngle] = meeting_data->num_participants;
-					}
-				}
+							meeting_data->participant_number[target_angle + iAngle] = meeting_data->num_participants;
+						}
+						else
+						{
+							meeting_data->participant_number[iAngle - 1] = meeting_data->num_participants;
+						}
+						if (target_angle - iAngle >= 0)
+						{
+							// could check if already set here - but for now will just overwrite
+							// 360 is for going round the clock face
+							meeting_data->participant_number[target_angle - iAngle] = meeting_data->num_participants;
+						}
+						else
+						{
+							meeting_data->participant_number[361 - iAngle] = meeting_data->num_participants;
+						}
+					}	
 
-				participant_data_array[meeting_data->num_participants].participant_is_talking = iChannel;
+					participant_data_array[meeting_data->num_participants].participant_is_talking = iChannel;
+				}	
 			}
 			else // its an existing talker we're hearing
 			{
 				// could put logic in here to count turns
-				participant_data_array[meeting_data->angle_array[target_angle]].participant_is_talking = 10 * odas_data_array[iChannel].activity;
-				participant_data_array[meeting_data->angle_array[target_angle]].participant_total_talk_time++;
+				participant_data_array[meeting_data->participant_number[target_angle]].participant_is_talking = 1;
+				participant_data_array[meeting_data->participant_number[target_angle]].participant_total_talk_time++;
+				++meeting_data->num_talking; // another person is talking in this session
 
-				if (odas_data_array[iChannel].frequency > 0.0)
-				{
-					participant_data_array[meeting_data->angle_array[target_angle]].participant_frequency = (0.9 * participant_data_array[meeting_data->angle_array[target_angle]].participant_frequency) + (0.1 * odas_data_array[iChannel].frequency);
-				}
+//				if (odas_data_array[iChannel].frequency > 0.0)
+//				{
+//					participant_data_array[meeting_data->participant_number[target_angle]].participant_frequency = (0.9 * participant_data_array[meeting_data->participant_number[target_angle]].participant_frequency) + (0.1 * odas_data_array[iChannel].frequency);
+//				}
 			}
 		}
 		else
 		{
+			prospective_source[iChannel] = 0;
 			meeting_data->total_silence++;
 		}
 	}
@@ -332,12 +337,14 @@ void initialise_meeting_data(meeting *meeting_data, participant_data *participan
 
 	for (i = 0; i < 360; i++)
 	{
-		meeting_data->angle_array[i] = 0;
+		meeting_data->participant_number[i] = 0;
 	}
 
 	meeting_data->total_silence = 0;
 	meeting_data->total_meeting_time = 0;
 	meeting_data->num_participants = 0;
+	meeting_data->last_talker = 0;
+	meeting_data->num_talking = 0;
 }
 
 void write_to_file(std::string buffer)
@@ -479,12 +486,8 @@ int main(int argc, char **ppArgv)
 		{
 //			printf("got %d bytes\n", bytes_returned);
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
-
-
 //			printf("going in to parsing");
-
-			json_parse(input_buffer, odas_data_array);
-		
+			json_parse(input_buffer, odas_data_array);		
 //			printf("got past parsing");
 			process_sound_data(&meeting_data, participant_data_array, odas_data_array);
 
@@ -517,21 +520,14 @@ int main(int argc, char **ppArgv)
 
 // new logic by sd to calc turns using energy 
 
-				if (participant_data_array[i].participant_is_talking == 0) 
+				if (participant_data_array[i].participant_is_talking == 1 && meeting_data.num_talking == 1) 
 				{
-					participant_data_array[i].participant_silent_time++;
+					if (meeting_data.last_talker!=i) // its a change of turn
+					{
+						++participant_data_array[i].participant_num_turns;
+						meeting_data.last_talker = i;
+					}
 				}
-				else 
-				{
-					if (participant_data_array[i].participant_silent_time > MINTURNSILENCE) participant_data_array[i].participant_num_turns++;
-					participant_data_array[i].participant_silent_time = 0;
-				}
-
-
-
-
-					
-
 				
 // end of new turn logic
 
@@ -542,31 +538,6 @@ int main(int argc, char **ppArgv)
 			}
 
 			serverDataTextString += "]}\n";
-
-
-
-/*			if (participant_data_array[i].participant_is_talking > 0)
-			{
-				// not sure this logic is necessary - prob all targets go to zero before dropping out
-				participant_data_array[i].participant_is_talking = 0x00;
-				if (participant_data_array[i].participant_silent_time > MINTURNSILENCE)
-				{
-					participant_data_array[i].participant_num_turns++;
-					participant_data_array[i].participant_silent_time = 0;
-				}
-				else
-				{
-					participant_data_array[i].participant_silent_time++;
-				}
-
-// i think this logic was from when i only sent data about talking people
-//				if (i != (meeting_data.num_participants))
-//				{
-//					serverDataTextString += ",";
-//				}
-			}
-*/
-
 
 
 			mutex_buffer.unlock();

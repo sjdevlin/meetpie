@@ -23,10 +23,11 @@
 #define MAXLINE 1024
 #define MAXPART 8
 #define MAXSILENCE 500
-#define NUM_CHANNELS 3
-#define ANGLE_SPREAD 15
+#define NUMCHANNELS 3
+#define ANGLESPREAD 10
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2
+#define MINTALKTIME 10
 
 // to do :
 // define talker as the highest average energy over last 5 secs
@@ -57,6 +58,8 @@ typedef struct meeting{
     int num_participants;
     int total_silence;
     int total_meeting_time;
+    int last_talker;
+    int num_talking;
  } meeting;
 
 void process_sound_data(meeting *, participant_data *, odas_data *);
@@ -64,4 +67,4 @@ void initialise_meeting_data(meeting *, participant_data *, odas_data *);
 void write_to_file(char * ) ;
 
 
-#endif /* udp_rec_h */
+#endif /* meetpie_h */
