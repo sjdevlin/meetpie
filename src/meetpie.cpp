@@ -486,7 +486,7 @@ int main(int argc, char **ppArgv)
 		{
 //			printf("got %d bytes\n", bytes_returned);
 			input_buffer[bytes_returned] = 0x00; // sets end for json parser
-//			printf("going in to parsing");
+			printf(input_buffer);
 			json_parse(input_buffer, odas_data_array);		
 //			printf("got past parsing");
 			process_sound_data(&meeting_data, participant_data_array, odas_data_array);

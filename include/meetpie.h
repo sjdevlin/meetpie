@@ -27,7 +27,7 @@
 #define ANGLESPREAD 15
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2
-#define MINTALKTIME 10
+#define MINTALKTIME 3
 
 // to do :
 // define talker as the highest average energy over last 5 secs
