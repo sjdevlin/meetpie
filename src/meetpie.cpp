@@ -228,7 +228,7 @@ void process_sound_data(meeting *meeting_data, participant_data *participant_dat
 {
 	int target_angle;
 	int iChannel, iAngle;
-	static int prospective_source[4] = {0,0,0,0};  // not pretty but will work for now - assumes NUM_CHANNELS <= 4
+	static int prospective_source[4] = {0,0,0,0};  // not pretty but will work for now - assumes NUMCHANNELS <= 4
 
 	meeting_data->num_talking=0;
 	meeting_data->total_meeting_time++;
@@ -262,7 +262,7 @@ void process_sound_data(meeting *meeting_data, participant_data *participant_dat
 					participant_data_array[meeting_data->num_participants].participant_frequency = 200.0;
 					// write a buffer around them
 
-					for (iAngle = 1; iAngle < ANGLE_SPREAD; iAngle++)
+					for (iAngle = 1; iAngle < ANGLESPREAD; iAngle++)
 					{
 						if (target_angle + iAngle < 360)
 						{
@@ -327,7 +327,7 @@ void initialise_meeting_data(meeting *meeting_data, participant_data *participan
 		participant_data_array[i].participant_frequency = 150.0;
 	}
 
-	for (i = 0; i < NUM_CHANNELS; i++)
+	for (i = 0; i < NUMCHANNELS; i++)
 	{
 		odas_data_array[i].x = 0.0;
 		odas_data_array[i].y = 0.0;
@@ -449,7 +449,7 @@ int main(int argc, char **ppArgv)
 
 	meeting meeting_data;	   // "meeting" is a  custom type
 	participant_data *participant_data_array = (participant_data *)malloc(MAXPART * sizeof(participant_data)); // "participant data" is a struct
-	odas_data *odas_data_array = (odas_data *)malloc(NUM_CHANNELS * sizeof(odas_data));					   // "odas data" is a struct
+	odas_data *odas_data_array = (odas_data *)malloc(NUMCHANNELS * sizeof(odas_data));					   // "odas data" is a struct
 	initialise_meeting_data(&meeting_data, participant_data_array, odas_data_array);					   // set everything to zero
 
 	// need to change the main to poll gpio to test for reset
@@ -528,7 +528,8 @@ int main(int argc, char **ppArgv)
 						meeting_data.last_talker = i;
 					}
 				}
-				
+
+				participant_data_array[i].participant_is_talking = 0; // set everyone to not talking
 // end of new turn logic
 
 				if (i < MAXPART-1)

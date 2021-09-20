@@ -24,7 +24,7 @@
 #define MAXPART 8
 #define MAXSILENCE 500
 #define NUMCHANNELS 3
-#define ANGLESPREAD 10
+#define ANGLESPREAD 15
 #define MINTURNSILENCE 30
 #define MINENERGY 0.2
 #define MINTALKTIME 10
@@ -54,7 +54,7 @@ typedef struct participant_data{
  } participant_data;
 
 typedef struct meeting{
-    int angle_array[360];
+    int participant_number[360];
     int num_participants;
     int total_silence;
     int total_meeting_time;
