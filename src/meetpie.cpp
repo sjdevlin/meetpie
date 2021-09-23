@@ -364,12 +364,55 @@ void write_to_file(std::string buffer)
 
 }
 
+
+
+class ODAS
+{
+public:
+    ODAS();
+    ~ODAS();
+    void Start(std::function<void(std::string)>);
+    void Stop();
+private:
+    std::vector<std::thread*> threads;
+};
+
+void ODAS::Start(std::function<void(std::string, ODAS*)> f)
+{
+    system("ODASProcess.sh start");
+    startUDP("localhost:1223");
+    std::string line;
+    while(true)
+    {
+        readFromUDP(line);
+        f(line, this);
+    }
+}
+
+void ODAS::Stop()
+{
+    system("ODASProcess.sh stop");
+}
+
+void ProcessEvent(std::string incomingJSON, ODAS *obj)
+{
+    obj->Stop();
+}
+
+
+
 //
 // Entry point
 //
 
 int main(int argc, char **ppArgv)
 {
+
+    ODAS odas1;
+    odas1.Start(ProcessEvent);
+
+    ODAS odas2;
+    odas2.Start(ProcessEvent);
 
 	// A basic command-line parser
 	for (int i = 1; i < argc; ++i)
